@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -30,6 +30,8 @@ namespace ConsoleApp2
                     Console.WriteLine("2) Insert data.");
                     Console.WriteLine("3) Update data.");
                     Console.WriteLine("4) Delete data.");
+                    Console.WriteLine("5) Show character's statistics.");
+                    Console.WriteLine("6) Count average character's experience.");
                     Console.WriteLine("0) Close the connection.");
                     choice = Convert.ToInt32(Console.ReadLine());
                     switch (choice)
@@ -45,6 +47,12 @@ namespace ConsoleApp2
                             break;
                         case 4:
                             DropData(conn);
+                            break;
+                        case 5:
+                            showCharacterStatistics(conn);
+                            break;
+                        case 6:
+                            averageExp(conn);
                             break;
                         default:
                             break;
@@ -372,6 +380,70 @@ namespace ConsoleApp2
 
                     Console.WriteLine("Row Count affected = " + rowCount);
                     break;
+            }
+        }
+        private static void showCharacterStatistics(MySqlConnection conn)
+        {
+            Console.WriteLine("Please, enter the Character Name to get statistics.");
+            string name = Console.ReadLine();
+
+            // Создать объект Command.
+
+            string sql = "select statistics.name as Parameter, _character.Name as Charname, statstocharacter.Value from statstocharacter inner join statistics on statstocharacter.StatID = statistics.StatID inner join _character on statstocharacter.CharacterID = _character.CharacterID where _character.Name = @name";
+            
+            MySqlCommand cmd = new MySqlCommand();
+            cmd.Connection = conn;
+            cmd.CommandText = sql;
+            cmd.Parameters.Add("@name", MySqlDbType.Text).Value = name;
+            using (DbDataReader reader = cmd.ExecuteReader())
+            {
+                if (reader.HasRows)
+                {
+
+                    while (reader.Read())
+                    {
+                        // Индекс (index) столбца Emp_ID в команде SQL.
+                        int parameter_index = reader.GetOrdinal("Parameter");
+                        string parameter = reader.GetString(parameter_index);
+
+                        int charname_index = reader.GetOrdinal("Charname");
+                        string charname = reader.GetString(charname_index);
+
+                        int value_index = reader.GetOrdinal("Value");
+                        int value = Convert.ToInt32(reader.GetString(value_index));
+
+                        Console.WriteLine("--------------------");
+                        Console.WriteLine("Parameter: " + parameter);
+                        Console.WriteLine("Charname: " + charname);
+                        Console.WriteLine("Value: " + value);
+                        Console.WriteLine("--------------------");
+                    }
+                }
+            }
+        }
+        private static void averageExp(MySqlConnection conn)
+        {
+            string sql = "select avg(Experience) as Result from _character";
+            MySqlCommand cmd = new MySqlCommand();
+            cmd.Connection = conn;
+            cmd.CommandText = sql;
+
+            using (DbDataReader reader = cmd.ExecuteReader())
+            {
+                if (reader.HasRows)
+                {
+
+                    while (reader.Read())
+                    {
+                        // Индекс (index) столбца Emp_ID в команде SQL.
+                        int result_index = reader.GetOrdinal("Result");
+                        double result = Convert.ToDouble(reader.GetValue(result_index));
+
+                        Console.WriteLine("--------------------");
+                        Console.WriteLine("Result: " + result);
+                        Console.WriteLine("--------------------");
+                    }
+                }
             }
         }
     }
